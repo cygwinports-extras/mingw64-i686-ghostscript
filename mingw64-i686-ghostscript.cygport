@@ -1,0 +1,37 @@
+CROSS_HOST="i686-w64-mingw32"
+inherit cross
+
+NAME="mingw64-i686-ghostscript"
+VERSION=8.71
+RELEASE=1
+CATEGORY="Devel"
+SUMMARY=
+DESCRIPTION=
+HOMEPAGE="http://www.ghostscript.com/"
+SRC_URI="http://downloads.ghostscript.com/public/ghostscript-${VERSION}.tar.xz"
+SRC_DIR="ghostscript-${VERSION}"
+PATCH_URI="https://build.opensuse.org/source/windows:mingw:win64/mingw64-ghostscript/ghostscript-8.71-windows.patch"
+
+src_compile() {
+	cd ${S}
+	NO_AUTOHEADER=1 \
+	cygautoreconf
+	cd ${B}
+	lndirs
+	cygconf \
+		--without-jasper \
+		--with-libiconv=native \
+		--with-system-libtiff \
+		--without-x \
+		--disable-cups \
+		--disable-contrib
+	cygmake so
+}
+
+src_install() {
+	cd ${B}
+	cygmake -j1 soinstall DESTDIR=${D}
+	dolib sobin/libgs.dll.a
+	mv ${D}${CROSS_LIBDIR}/libgs-8.dll ${D}${CROSS_BINDIR}/
+	rm -f ${D}${CROSS_LIBDIR}/libgs.so*
+}
